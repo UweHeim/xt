@@ -1,5 +1,5 @@
 //_______________________________________________________________________________________________________________
-public without sharing class xr {
+public without sharing class xr { 
 //_______________________________________________________________________________________________________________
 /*
 * (c)2012-2014 elastify GmbH & Co. KG
@@ -34,7 +34,7 @@ public without sharing class xr {
 	<require>
 	</require>
 	<changelog>
-		<v n="1.0.1"> added License Block																(2014-09-17) </v>
+		<v n="1.0.2"> added License Block																(2014-09-17) </v>
 		<v n="1.0.0"> changed header to xml																(2014-03-23) </v>
 		<v n="0.9.3"> HEAD		 																					 </v>
 		<v n="0.9.2"> HEAD 																							 </v>
