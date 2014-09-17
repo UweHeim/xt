@@ -449,21 +449,6 @@ public static string getOrgNamespacePrefix() {
 }
 
 
-// commented out: can not work !!
-// will try to figure out master-session-id from parent frame (non-visualforce context). Works only when elfAppCore is installed
-// public static string getMasterSessionId() {
-// 	string result = '';
-// 	string[] tds = new string[]{}; 
-// 	PageReference p = new PageReference('/');
-//     String html = p.getContent().toString();
-//     html = html.replace('\r','');html = html.replace('\n','');
-//     xr r = new xr ('<span class="elfMasterSessionId" style="display: none;">(.*?)</span>',  html  );
-//     result = r.pick(1);    
-//     return result;    
-// }
-
-
-
 public static string removeNamespacePrefix(string ObjName) {
 	if( ObjName.indexOf('__')>=0 && ObjName.indexOf('__') != ObjName.lastIndexOf('__') ) { // out of "prefix__test__c" get only "test__c"
 		ObjName = ObjName.substringAfter('__');
@@ -480,10 +465,6 @@ public static string getObjectNamespacePrefix(String ObjName) {
     	return gds.get( ObjName ).getDescribe().getName().replace( removeNamespacePrefix(ObjName) ,'').replace('__','');
     }
 }
-// public static string getObjectNamespacePrefix(String ObjName) {											// 2014-09-02: old version
-//     ObjName = removeNamespacePrefix(ObjName); // in case its prefixed already, unprefix it!
-//     return gds.get( ObjName ).getDescribe().getName().replace( ObjName ,'').replace('__','');
-// }
 
 
 public static string getObjectKeyPrefix(String ObjName) {
@@ -498,10 +479,6 @@ public static string getObjectNamespacePrefixedName(String ObjName) {
 		return gds.get( ObjName ).getDescribe().getName();													// later, try it prefixed
 	}
 }
-// public static string getObjectNamespacePrefixedName(String ObjName) {									// 2014-09-02: old version
-//     ObjName = removeNamespacePrefix(ObjName); // in case its prefixed already, unprefix it!
-// 	return gds.get( ObjName ).getDescribe().getName();
-// }
 
 //_____________________________________________________________________________________________________________________________________________
 //	package functions 
@@ -582,15 +559,7 @@ public static List<String> getFields(String ObjectName) { // new version 2013-10
 	return  xt.toList( org.get(ObjectName).fields.keyset() );
 }
 
-// public static string getType(SObject obj) { // DEPRECIATED old version (as of 2014-08-28)
-// 	if(obj==null) return '';
-// 	return obj.getSObjectType().getDescribe().getName()+'';
-// }
 
-// public static string getTypeDetect(Decimal 				o) { return 'Decimal'; }
-// public static string getTypeDetect(Double 				o) { return 'Double'; }
-// public static string getTypeDetect(Set<object> 			o) { return 'Set'; }
-// public static string getTypeDetect(Map<object,object> 	o) { return 'Map'; }
 public static string getType(Object o) {
 	if(o==null) return ''; // we can't say much about null
 	if(o instanceof SObject) 			return ((SObject)o).getSObjectType().getDescribe().getName()+''; 
@@ -654,7 +623,6 @@ public static Object getFieldValue(SObject aSObject, String fieldReference) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////
 // get type by fieldReference (path to subitems). On Accounts fieldReference could be Parent.AnnualRevenue
-//public static Object getType(SObject aSObject, String fieldReference) {
 //public static String getType(SObject aSObject, String fieldReference) { return null; } // DEPRICIATED !!!!!
 public static String getFieldType(SObject aSObject, String fieldReference) {
 	//Object result = null;
@@ -738,15 +706,8 @@ public static String getObjectType(string objectReference) {
 		if(i == 0) {
 			string prefix = '';
 			if(ref.endsWith('__c')) {
-			 // to following is a big shit! it must work from inside and outside managed packages. Can be done way better, but excessive testing required !!
-			    //string oldPrefix = ref.removeEnd('__c').substringBefore('__')+'__'; 								// 2014-09-02: added 
-			    																	// worked before
-				//try { 																								// 2014-09-02: added
 				prefix = getObjectNamespacePrefix( ref )!='' ? getObjectNamespacePrefix( ref )+'__' : '';		// worked before
 				ref = removeNamespacePrefix(ref);
-				// } catch(exception e) {																				// 2014-09-02: added
-				// 	prefix = oldPrefix;																				// 2014-09-02: added
-				// }																									// 2014-09-02: added	
 			}
 			curObject = org.get( prefix + ref );
 			if(curObject == null) return null;
@@ -794,25 +755,20 @@ public static boolean getFieldExists(SObject aSObject, string fieldReference) {
 	for(string ref : refs) {
 		boolean proceed = false;
 		level++;
-//xt.log(ref+' ('+level+')');
 		try {
 			value = obj.get(ref);		// try for a field
 			return true;   				// got a field
 		} catch(exception e) {
-//xt.log('noField:'+ref);
 		}								// no field, but could still be a reference
 		try {							// try for reference
 			if(ref.endsWith('__r')) {  	// try for a custom-reference
 				obj = (SObject) newObject(  org.get( getType(obj) ).get( ref.removeEnd('__r')+'__c' ).referenceType );
-//xt.log('type:'+ xs.getFieldType(obj,ref) );
 				proceed = true;
 			} else {					// try for a standard-reference
 				obj = (SObject) newObject(  org.get( getType(obj) ).get(ref+'Id').referenceType );
-//xt.log('type:'+ xs.getType(obj,ref+'Id') );//xt.log('NEW-type:'+ getType(obj) );
 				proceed = true;
 			}
 		} catch(exception e) { }
-//xt.log('ERROR:'+ (ref) );
 		if(!proceed) return false;
 	}
 	return false; 						// nothing matched
@@ -826,7 +782,6 @@ public static Map<String,String> getChildRelationships(String ObjectName) { //ke
 	for(Schema.ChildRelationship cr : crs) if(cr.getRelationshipName() != null) {
 		String out = cr.getChildSObject().getDescribe().getName()+'.'+cr.getField().getDescribe().getName();
 		result.put(cr.getRelationshipName(),out);
-//System.debug(cr.getRelationshipName()+' ====> '+ out );
 	}
 	return result;
 }
@@ -837,19 +792,10 @@ public static Map<String,String> getChildRelationshipsByObjectNames(String Objec
 	for(Schema.ChildRelationship cr : crs) if(cr.getRelationshipName() != null) {
 		String out = cr.getChildSObject().getDescribe().getName()+'';
 		result.put(out,cr.getRelationshipName());
-//System.debug(cr.getRelationshipName()+' ====> '+ out );
 	}
 	return result;
 }
 
-// public static List<String> getPicklistValues(String ObjectName,String FieldName){ 
-//   	List<String> 					results				= new List<String>();
-// 	List<Schema.PicklistEntry> 		pes 				= org.get(ObjectName).get(FieldName).soResult.getPickListValues();
-// 	for(Schema.PicklistEntry pe : pes) { 
-//   		results.add(pe.getValue());
-//   	}
-//   	return results;	
-// }
 
 public static List<String> getPicklistValues(String ObjectName,String FieldName){ 
 	return org.get(ObjectName).get(FieldName).getPickListValues();
@@ -920,32 +866,6 @@ public static boolean isPicklist(SObject o, String fieldReference) {
 	;
 }
 
-/* this testcode is designed to run on dev13 */
-/* 2014:09-02 : updated fixed bugs to access from outside managed package
-/* 2014:08-22 : TEST I see no way to write, because we can not have any relaiable CustomField present in every Org...  
-// xt.log(xs.getObjectNamespacePrefix('elfXLog__elfXLog__c'));                    
-// xt.log(xs.getField('Opportunity.Account.Owner.Name').type);                    
-// xt.log(xs.getField('elfXLog__elfXLog__c.Owner.Name').isCustom);                    
-// xt.log(xs.getObjectType('Opportunity.Account'));                    
-// xt.log(xs.getObjectType('Opportunity.Account'));                    
-// xt.log(xs.getField('elfXLog__elfXLog__c.Name'));                    
-// xt.log(xs.getField('elfXLog__elfXLog__c.Owner'));                    
-// xt.log( xs.org.get('wordFusion__elfDPImport__c').isCustom );                    
-// xt.log( xs.org.get('Name').getFieldNames() );                    
-// xt.log( xs.org.get('Lead').get('OwnerId').referenceType );                    
-// xt.log(xs.queryCreateSoql('select *, CreatedBy.*, Owner.TestB__r from Account limit 1 '));                    
-// xt.log(xs.getObjectType('Account.Owner.LastModifiedBy'));                    
-// xt.log(xs.getObjectType('Account.Owner.wordFusion__TestB__r'));                    
-// xt.log(xs.getObjectType('elfXLog__elfXLog__c'));               
-// xt.log(Schema.getGlobalDescribe().get( 'elfXLog__elfXLog__c' ).getDescribe().getName() );
-// xt.log(xs.getObjectNamespacePrefix('wordFusion__elfDPImport__c'));                    
-// xt.log(xs.getObjectNamespacePrefix('elfDPImport__c'));                    
-// xt.log(xs.getObjectNamespacePrefix('elfXLog__elfXLog__c'));                    
-// xt.log(xs.queryCreateSoql('select Owner.* from wordFusion__elfDPImport__c limit 1 '));                    
-// xt.log(xs.query('select *, CreatedBy.*, Owner.* from wordFusion__elfDPImport__c limit 1 '));                    
-// xt.log(xs.query('select *, CreatedBy.*, Owner.wordFusion__TestB__r.* from Account limit 1 '));                    
-// xt.log(xs.query('select *, CreatedBy.*, Owner.* from elfXLog__elfXLog__c limit 1 ')); //, CreatedBy.*, Owner.*                    
-*/
 
 
 public static testMethod void test() {
@@ -1033,145 +953,3 @@ public static testMethod void test() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-/*
-//DEPRECIATED: consumes schema-limits
-public static boolean isText(String ObjectName, String FieldName) {
- Schema.DisplayType dt = Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap().get(FieldName).getDescribe().getType();
- return false
-		|| dt == Schema.Displaytype.String
-     || dt == Schema.Displaytype.TextArea
-     || dt == Schema.Displaytype.EncryptedString
-	;
-}
-*/
-
-
-/*
-// DEPRECIATED: consumes schema-limits
-public static boolean isDateOrTime(String ObjectName, String FieldName) {
-    Schema.DisplayType dt = Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap().get(FieldName).getDescribe().getType();
-    return false
-		|| dt == Schema.Displaytype.Time
-        || dt == Schema.Displaytype.Date
-        || dt == Schema.Displaytype.Datetime
-	;
-}
-*/
-
-
-
-
-/*
-// DEPRECIATED: consumes schema-limits
-public static boolean isNumber(String ObjectName, String FieldName) {
-    Schema.DisplayType dt = Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap().get(FieldName).getDescribe().getType();
-    return false
-    	|| dt == Schema.Displaytype.Currency
-        || dt == Schema.Displaytype.Integer
-        || dt == Schema.Displaytype.Percent
-        || dt == Schema.Displaytype.Double
-	;
-}
-*/
-
-
-
-
-
-/*
-public static Map<String, Schema.SObjectField> getFieldMap(String ObjectName) { // UNBUFFERD VERSION WILL EAT UP LIMITS
-    return Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap();
-}
-
-public static List<String> getFields(String ObjectName) {
-	List<String> result = new List<String>();
-	for(Schema.SObjectField field : getFieldMap(ObjectName).values() ){
-	   result.add(field+'');
-	}
-	return result;
-}
-*/
-
-
-
-
-
-
-/*
-public static String getFieldType(String ObjectName, String FieldName) {
-    if(ObjectName==null || FieldName==null) return '';
-    if( FieldName.countMatches('__') > 1 ) FieldName = Fieldname.substringAfter('__');
-    String out = Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap().get(FieldName).getDescribe().getType()+'';
-    //System.debug('=============================>'+out);
-    return Schema.getGlobalDescribe().get(ObjectName).getDescribe().fields.getMap().get(FieldName).getDescribe().getType()+'';
-}
-*/
-
-
-/*
-public static Object getValue2(SObject aSObject, String fieldReference) {
-	Object result = null;
-	string type = '';
-	List<string> fieldLevels = xt.explode('.',fieldReference);
-	if(false) { // switch
-		} else if(fieldLevels.size()==1) {
-			result = aSObject.get(fieldLevels[0]) ;
-		} else if(fieldLevels.size()==2) {
-			try {
-				result = aSobject.getSObject(fieldLevels[0]).get(fieldLevels[1]) ;
-			} catch(Exception e) {
-				result = null;
-			}
-		} else if(fieldLevels.size()==3) {
-			try {
-				result = aSobject.getSObject(fieldLevels[0]).getSObject(fieldLevels[1]).get(fieldLevels[2])  ;
-			} catch(Exception e) {
-				result = null;
-			}
-	}
-	return result;
-}
-*/
-
-
-/*
-public static string type(object o) {
-	string result = '?';
-	if(o==null) result = 'null';
-	//return(string.valueof(o));
-	//Type t = o.class;
-	if(Type.forName('string').equals(o)) 	{ result = 'string'; }
-	if(Type.forName('decimal').equals(o)) 	{ result = 'decimal'; }
-	if(Type.forName('integer').equals(o)) 	{ result = 'integer'; }
-	if(Type.forName('double').equals(o)) 	{ result = 'double'; }
-	if(Type.forName('long').equals(o)) 		{ result = 'long'; }
-	if(Type.forName('datetime').equals(o)) 	{ result = 'datetime'; }
-	if(Type.forName('date').equals(o)) 		{ result = 'date'; }
-	if(Type.forName('time').equals(o)) 		{ result = 'time'; }
-	//if(Type.forName('decimal').equals(o)) {return 'decimal';}
-	return result;
-}
-*/
-
-/*
-private static String t(string Value)	{ return 'string'; }
-private static String t(integer Value)	{ return 'integer'; }
-private static String t(Double Value) 	{ return 'double'; }
-private static String t(Boolean Value) 	{ return 'boolean'; }
-private static String t(Long Value)		{ return 'long'; }
-private static String t(Date Value)		{ return 'date'; }
-private static String t(Datetime Value)	{ return 'datetime'; }
-private static String t(Time Value)		{ return 'time'; }
-private static String t(Decimal Value)	{ return 'decimal'; }
-*/

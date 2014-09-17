@@ -106,12 +106,6 @@ public static string getType(Object o) {
 }
 
 
-// public static ApexPages.Component getComponent(ApexPages.Component parent,ApexPages.Component[] children) {
-// 	for(ApexPages.Component child : children) {
-// 		if(child!=null) parent.childComponents.add(child);
-// 	}
-// 	return parent;
-// }
 
 public static string getPageParam(string param) {
 	//try {
@@ -307,20 +301,6 @@ public static Boolean isObjectModified(SObject obj, SObject obj2) {
         	result = true;
         }
     }
-/*
- //DO NOT KILL THIS CODE
-    //if(result) {
-    if(true) {
-    	LogObject__c l = new LogObject__c(
-    		 Subject__c = objmap.get('Id') + ' : ' + obj2map.get('Name')
-    		,Content__c = changes
-    		,Detail1__c = (JSON.serialize(obj))
-    		,Detail2__c = (JSON.serialize(obj2))
-
-    	);
-    	insert l;
-    }
-*/
 
     return result;
 }
